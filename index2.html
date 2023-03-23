@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="./js/svg_23110_9.389be8630856fc08708e11d405026869.js"></script>
+  <title>播放器</title>
+  <style>
+    .player .cover {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      z-index: -1;
+    }
+
+    .player .cover::after {
+      content: '';
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    .player .panel {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 60px;
+      height: 150px;
+      padding: 32px;
+      border-radius: 24px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
+
+    .player .title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .player .author {
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .player .bar-container {
+      height: 6px;
+      background-color: #a3a3a3;
+      border-radius: 3px;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    .player .bar {
+      position: relative;
+      width: 0%;
+      height: 100%;
+      background-color: #ffff;
+      border-radius: 3px;
+      /* transition: all 1s linear; */
+    }
+
+    .player .bar .circle {
+      position: absolute;
+      right: -8px;
+      top: -5px;
+      content: '';
+      display: block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #fff;
+    }
+
+    .player .duration {
+      display: flex;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .player .duration .total {
+      margin-left: auto;
+    }
+
+    .iconpark-icon {
+      width: 2em;
+      height: 2em;
+      cursor: pointer;
+      transition: all .3s;
+    }
+
+    .iconpark-icon:hover {
+      opacity: 0.7;
+    }
+
+    .hide {
+      display: none;
+    }
+
+    .player .control {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .icon-play,
+    .icon-pause {
+      width: 3em;
+      height: 3em;
+    }
+
+    .icon-normal,
+    .icon-circle,
+    .icon-shuffle {
+      display: none;
+    }
+
+    .mode.normal .icon-normal {
+      display: block;
+    }
+
+    .mode.circle .icon-circle {
+      display: block;
+    }
+
+    .mode.shuffle .icon-shuffle {
+      display: block;
+    }
+
+    .list {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 100px;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.9);
+      color: #fff;
+      box-shadow: 0 0 4px rgba(255,255,255,0.4);
+      transform: translateX(-110%);
+      transition: all .3s;
+    }
+
+    .list.show {
+      transform: translateX(0%);
+    }
+
+    .list ul {
+      margin: 0;
+      padding: 0;
+    }
+
+    .list li {
+      list-style: none;
+      padding: 8px 16px;
+      background-color: #6d6c6c;
+      border-bottom: 1px solid #777;
+      transition: all .3s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+
+    .list li.active  {
+      background-color: rgba(255,255,255,0.5);
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <div class="player">
+      <div class="cover" style="background-image: url(./assets/烦恼歌.jpg);"></div>
+      <div class="panel">
+        <div class="title">烦恼歌</div>
+        <div class="author">张学友</div>
+        <div class="progress">
+          <div class="bar-container">
+            <div class="bar" style="width: 0%;"><span class="circle"></span></div>
+          </div>
+          
+          <div class="duration">
+            <span class="current">1:30</span>
+            <span class="total">4:25</span>
+          </div>
+        </div>
+        <div class="control">
+          <div class="mode normal">
+            <svg class="iconpark-icon icon-normal">
+              <use href="#play-cycle"></use>
+            </svg>
+            <svg class="iconpark-icon icon-circle ">
+              <use href="#play-once"></use>
+            </svg>
+            <svg class="iconpark-icon icon-shuffle ">
+              <use href="#shuffle-one"></use>
+            </svg>
+          </div>
+
+          <svg class="iconpark-icon icon-pre">
+            <use href="#go-start"></use>
+          </svg>
+          <svg class="iconpark-icon icon-pause">
+            <use href="#pause-one"></use>
+          </svg>
+          <svg class="iconpark-icon icon-play hide">
+            <use href="#play"></use>
+          </svg>
+          <svg class="iconpark-icon icon-next">
+            <use href="#go-end"></use>
+          </svg>
+          <svg class="iconpark-icon icon-list">
+            <use href="#list-top"></use>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="list">
+ 
+    </div>
+  </div>
+
+
+
+  <script>
+    const list = [
+      {
+        "id": "0",
+        "title": "真的吗1",
+        "author": "莫文蔚",
+        "albumn": "我要说I Say",
+        "lyric": "./assets/lyric_真的吗.json",
+        "url": "./assets/莫文蔚-真的吗.mp3",
+        "cover": "./assets/真的吗.jpg"
+      },
+      {
+        "id": "2",
+        "title": "后来的我们2",
+        "author": "五月天",
+        "albumn": "后来的我们",
+        "lyric": "./assets/lyric_后来的我们.json",
+        "url": "./assets/后来的我们.mp3",
+        "cover": "./assets/后来的我们.jpg"
+      },
+      {
+        "id": "3",
+        "title": "假装3",
+        "author": "陈雪凝",
+        "albumn": "拾陆",
+        "lyric": "./assets/lyric_假装.json",
+        "url": "./assets/假装.mp3",
+        "cover": "./assets/假装.jpg"
+      },
+      {
+        "id": "4",
+        "title": "烦恼歌4",
+        "author": "张学友",
+        "albumn": "在你身边",
+        "lyric": "./assets/lyric_烦恼歌.json",
+        "url": "./assets/烦恼歌.mp3",
+        "cover": "./assets/烦恼歌.jpg"
+      }
+    ]
+
+    // const Player = {
+    //   init() {
+
+    //   },
+    //   bindEvent() {
+
+    //   },
+    //   start() {
+
+    //   }
+    // }
+
+    // Player.init()
+    
+    const $ = s => document.querySelector(s)
+    const $playIcon = $('.icon-play') 
+    const $pauseIcon = $('.icon-pause')
+    const $listIcon = $('.icon-list')
+    const $title = $('.title')
+    const $author = $('.author')
+    const $cover = $('.cover')
+    const $total = $('.total')
+    const $current = $('.current')
+    const $bar = $('.bar')
+    const $preIcon = $('.icon-pre')
+    const $nextIcon = $('.icon-next')
+    const $barContainer = $('.bar-container')
+    const $circle = $('.bar-container .circle')
+    const $panel = $('.panel')
+    const $mode = $('.mode')
+    const $list = $('.list')
+
+    let clock = null
+    let index = 0
+    let modes = ['normal', 'circle', 'shuffle']
+    let modeIdx = 0 //normal:普通模式 circle ：单曲循环 shuffle:随机模式
+    let isDrag = false //判断进度条是否处于拖拽中
+
+    const audioObject = new Audio()
+
+    setAudio(index)
+
+    renderList() //渲染播放列表
+
+    $playIcon.onclick = function() {
+      audioObject.pause()
+      this.classList.add('hide')
+      $pauseIcon.classList.remove('hide')
+      clearInterval(clock)
+    }
+
+    $pauseIcon.onclick = function() {
+      audioObject.play()
+      this.classList.add('hide')
+      $playIcon.classList.remove('hide')
+      clock = setInterval(() => {
+        $current.innerText = secondToStr(audioObject.currentTime)
+        $bar.style.width = (audioObject.currentTime/audioObject.duration)*100+'%'
+      }, 1000)
+    }
+
+    $preIcon.onclick = playPreWithMode
+
+    $nextIcon.onclick = playNextWithMode
+
+    $barContainer.onclick = function(e) {
+      let rect = this.getBoundingClientRect()
+        //console.log(rect.x)
+      let offsetX = e.clientX - rect.x
+        // console.log(offsetX)
+      let percent = offsetX/this.offsetWidth
+      $bar.style.width = percent*100+'%'
+      audioObject.currentTime = percent*audioObject.duration
+    }
+
+    
+    $circle.onmousedown = onmousedown
+    $circle.ontouchstart = onmousedown
+
+    $circle.onmouseup = onmouseup
+    $circle.ontouchend = onmouseup
+
+    let clock2 = null //用于优化播放拖动卡顿
+    $panel.onmousemove = onmousemove
+    $panel.ontouchmove = onmousemove
+
+    $mode.onclick = function() {
+      modeIdx = (++modeIdx)%modes.length
+      console.log(modes[modeIdx])
+      // this.classList.remove('normal')
+      // this.classList.remove('circle')
+      // this.classList.remove('shuffle')
+      this.classList.remove(...modes)
+      this.classList.add(modes[modeIdx])
+      /*
+      if(mode === 'normal') {
+        mode = 'circle'
+        this.classList.remove('normal')
+        this.classList.add('circle')
+      } else if(mode === 'circle') {
+        this.classList.remove('circle')
+        mode = 'shuffle'
+        this.classList.add('shuffle')
+      } else if(mode === 'shuffle') {
+        this.classList.remove('shuffle')
+        mode = 'normal'
+        this.classList.add('normal')
+      }
+      */
+    }
+
+    $listIcon.onclick = function() {
+      $list.classList.toggle('show')
+    }
+
+    $list.onclick = function(e) {
+      console.log(e.target.tagName)
+      if(e.target.tagName === 'LI') {
+        const $$arrayLi = this.querySelectorAll('li')
+        index = [...$$arrayLi].indexOf(e.target)
+        $$arrayLi.forEach($li => $li.classList.remove('active'))
+        e.target.classList.add('active')
+        playIndex(index)
+        this.classList.remove('show')
+      }
+    }
+
+    audioObject.oncanplay = function() {
+      $total.innerText = secondToStr(this.duration)
+    }
+
+    audioObject.onended = playNextWithMode
+
+    function playNextWithMode() {
+      if(modes[modeIdx] === 'normal') {
+        playNext()
+      } else if(modes[modeIdx] === 'circle') {
+        playIndex(index)
+      } else if(modes[modeIdx] === 'shuffle') {
+        let newIndex = Math.floor(list.length*Math.random())
+        playIndex(newIndex)
+      }
+    }
+
+    function playPreWithMode() {
+      if(modes[modeIdx] === 'normal') {
+        playPre()
+      } else if(modes[modeIdx] === 'circle') {
+        playIndex(index)
+      } else if(modes[modeIdx] === 'shuffle') {
+        let newIndex = Math.floor(list.length*Math.random())
+        playIndex(newIndex)
+      }
+    }
+
+
+    function onmousedown() {
+      // console.log('down')
+      isDrag = true
+    }
+
+    function onmouseup() {
+      // console.log('up')
+      isDrag = false
+    }
+
+    function onmousemove(e) {
+      // console.log('move')
+      if(isDrag) {
+        // console.log('drag')
+        let rect = $barContainer.getBoundingClientRect()
+        let clientX = e.touches?e.touches[0].clientX:e.clientX
+        let offsetX = clientX - rect.x
+        let percent = offsetX/$barContainer.offsetWidth
+        $bar.style.width = percent*100+'%'
+        if(clock2) {
+          clearTimeout(clock2)
+        }
+        clock2 = setTimeout(()=>{
+          audioObject.currentTime = percent*audioObject.duration
+        }, 100)
+        
+      }
+    }
+
+    function playNext() {
+      index++
+      if(index >= list.length) {
+        index = 0
+      }
+      playIndex(index)
+    }
+
+    function playPre() {
+      index--
+      if(index < 0) {
+        index = list.length - 1
+      }
+      playIndex(index)   
+    }
+
+    function playIndex(i) {
+      index = i
+      setAudio(index)
+      if(shouldPlay()) {
+        audioObject.play()
+      }
+      setListActive() 
+    }
+ 
+
+    function secondToStr(second) {
+    //61 -> 1:01
+    // parseInt(61/60) ->1
+    // 61%60 -> 1 => 01  12 => 12
+      second = parseInt(second, 10)
+      let min = parseInt(second/60, 10)
+      let sec = second%60  
+      sec = sec >=10 ? ''+sec : '0'+sec
+      return min + ':' + sec
+    }
+
+    function setAudio(index = 0) {
+      let currentAudio = list[index]
+      audioObject.src = currentAudio.url
+      $title.innerText = currentAudio.title
+      $author.innerText = currentAudio.author
+      $cover.style.backgroundImage = `url(${currentAudio.cover})`
+    }
+
+    function shouldPlay() {
+      return !$playIcon.classList.contains('hide')
+    }
+
+    function renderList() {
+      const $ul = document.createElement('ul')
+      const $$doms = list.map((songObj, idx) => {
+        let $li = document.createElement('li')
+        if(idx === index) {
+          $li.classList.add('active')
+        }
+        $li.append((idx+1) + ' ' + songObj.title)
+        return $li
+      })
+      $ul.append(...$$doms)
+      $list.append($ul)
+    }
+
+    function setListActive() {
+      const $$arrayLi = $list.querySelectorAll('li')
+      $$arrayLi.forEach($li => $li.classList.remove('active'))
+      $$arrayLi[index].classList.add('active')
+    }
+
+  </script>
+</body>
+
+</html>
